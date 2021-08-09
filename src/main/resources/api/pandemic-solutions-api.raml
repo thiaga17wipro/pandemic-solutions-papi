@@ -1,0 +1,76 @@
+#%RAML 1.0
+title: Pandemic Solutions API
+version: v1
+protocols:
+  - HTTPS
+  - HTTP
+mediaType: 
+- application/json
+
+/covid-19:
+  /world:
+    description: Retrive Global Covid-19 cases.
+    get:
+      responses:
+       200:
+        body:
+          application/json:
+            example: !include /examples/worldCovidCases.json
+  /countries:
+      /{country}:
+          description: Get Covid-19 cases by Country
+          get:
+            responses:
+              200:
+                body:
+                  application/json:
+                    example: !include /examples/countryCovidCases.json
+  /vaccine:
+    /centers:
+      description: Retrieve vaccine centers by pincode
+      get:
+        responses:
+          200:
+            body:
+              application/json:
+                example: !include /examples/vaccineCenters.json
+    /certificate:
+      /generateOTP:
+        description: Generate OTP for authentication
+        get:
+          responses:
+            200:
+              body:
+                application/json:
+                  example: !include /examples/generateOTP.json
+      /validateOTP:
+        description: Validate the OTP
+        get:
+          responses:
+            200:
+              body:
+                application/json:
+                  example: !include /examples/validateOTP.json
+      /download:
+        description: Download Vaccine certificate
+        get:
+          responses:
+            200:
+              body:
+                application/json:
+                  example: 
+/clear:
+    description: Clear OS Keys
+    get:
+      responses:
+        200:
+          body:
+            application/json:
+              example: {
+                "message": "OS Keys are cleared"
+              }
+
+              
+                      
+  
+              

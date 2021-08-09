@@ -1,0 +1,11 @@
+http:
+  host: "0.0.0.0"
+  port: "8081"
+covid19:
+  host: "disease.sh"
+  basePath: "/v3/covid-19"
+cowin:
+  host: "cdn-api.co-vin.in"
+  basePath: "/api/v2"
+  
+  

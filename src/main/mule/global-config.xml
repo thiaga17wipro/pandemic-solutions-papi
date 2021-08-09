@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway" xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd">
+    <http:request-config name="Covid-19_API_configuration" doc:name="HTTP Request configuration" doc:id="cfebd158-4885-4895-b109-8e554f2df800" basePath="${covid19.basePath}">
+        <http:request-connection protocol="HTTPS" host="${covid19.host}" tlsContext="TLS_Context"/>
+    </http:request-config>
+    <configuration-properties doc:name="Configuration properties" doc:id="62ea83b9-ab0f-4b5b-9e1c-5f56248893c8" file="properties\pandemic-solutions-dev.yaml" />
+    <tls:context name="TLS_Context" doc:name="TLS Context" doc:id="42cd6eb8-34c7-46bf-b05b-34618771aff8" >
+        <tls:trust-store path="keystore.jks" password="1234" type="jks" insecure="true" />
+    </tls:context>
+    <http:request-config name="COWIN_API_configuration" doc:name="HTTP Request configuration" doc:id="7e018b68-831d-49c9-a788-7edc81e68e79" basePath="${cowin.basePath}" >
+        <http:request-connection protocol="HTTPS" host="${cowin.host}" tlsContext="TLS_Context" />
+    </http:request-config>
+</mule>
