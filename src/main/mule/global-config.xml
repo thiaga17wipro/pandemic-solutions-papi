@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway" xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
-	xmlns:http="http://www.mulesoft.org/schema/mule/http"
-	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway"
+	xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
-http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd">
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
     <http:request-config name="Covid-19_API_configuration" doc:name="HTTP Request configuration" doc:id="cfebd158-4885-4895-b109-8e554f2df800" basePath="${covid19.basePath}">
         <http:request-connection protocol="HTTPS" host="${covid19.host}" tlsContext="TLS_Context"/>
     </http:request-config>
@@ -16,4 +19,12 @@ http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/m
     <http:request-config name="COWIN_API_configuration" doc:name="HTTP Request configuration" doc:id="7e018b68-831d-49c9-a788-7edc81e68e79" basePath="${cowin.basePath}" >
         <http:request-connection protocol="HTTPS" host="${cowin.host}" tlsContext="TLS_Context" />
     </http:request-config>
+     <http:listener-config name="pandemic-solutions-api-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081"/>
+    </http:listener-config>
+    <apikit:config name="pandemic-solutions-api-config" api="pandemic-solutions-api.raml"
+        outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus"/>
+    <os:object-store name="Object_store" doc:name="Object store" doc:id="50319077-10a9-4c15-878d-37f13f1eb326"
+        maxEntries="100000" entryTtl="1" entryTtlUnit="MINUTES"/>
+
 </mule>
