@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:error-handler-plugin="http://www.mulesoft.org/schema/mule/error-handler-plugin" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/error-handler-plugin http://www.mulesoft.org/schema/mule/error-handler-plugin/current/mule-error-handler-plugin.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<error-handler name="error-handling-flow" doc:id="0535e71c-bcc6-46fd-be25-96901c41b981" >
+		 <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform
+                    xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "status": 400,
+    "errors": [
+        {
+            "errorType": (error.errorType.namespace ++ ":" ++ error.errorType.identifier)default "HTTP:INTERNAL_SERVER_ERROR",
+			 "errorCode": 400,
+            "errorMessage": "Bad Request",
+            "apiName": app.name,
+            "description": error.description,
+            "moreInfo": error.detailedDescription,
+            "transactionId": vars.transactionVar
+        }
+    ]
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[400]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform
+                    xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "status": 404,
+    "errors": [
+        {
+            "errorType": (error.errorType.namespace ++ ":" ++ error.errorType.identifier)default "HTTP:INTERNAL_SERVER_ERROR",
+			 "errorCode": 404,
+            "errorMessage": "Resource Not Found",
+            "apiName": app.name,
+            "description": error.description,
+            "moreInfo": error.detailedDescription,
+            "transactionId": vars.transactionVar
+        }
+    ]
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[404]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform
+                    xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "status": 405,
+    "errors": [
+        {
+            "errorType": (error.errorType.namespace ++ ":" ++ error.errorType.identifier) default "HTTP:INTERNAL_SERVER_ERROR",
+			 "errorCode": 405,
+            "errorMessage": "Method Not Allowed",
+            "apiName": app.name,
+            "description": error.description,
+            "moreInfo": error.detailedDescription,
+            "transactionId": vars.transactionVar
+        }
+    ]
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[405]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform
+                    xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "status": 406,
+    "errors": [
+        {
+            "errorType": (error.errorType.namespace ++ ":" ++ error.errorType.identifier)default "HTTP:INTERNAL_SERVER_ERROR",
+			 "errorCode": 406,
+            "errorMessage": "Not Acceptable",
+            "apiName": app.name,
+            "description": error.description,
+            "moreInfo": error.detailedDescription,
+            "transactionId": vars.transactionVar
+        }
+    ]
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[406]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform
+                    xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "status": 415,
+    "errors": [
+        {
+            "errorType": (error.errorType.namespace ++ ":" ++ error.errorType.identifier) default "HTTP:INTERNAL_SERVER_ERROR",
+			 "errorCode": 415,
+            "errorMessage": "Unsupported Media type",
+            "apiName": app.name,
+            "description": error.description,
+            "moreInfo": error.detailedDescription,
+            "transactionId": vars.transactionVar
+        }
+    ]
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[415]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform
+                    xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "status": 501,
+    "errors": [
+        {
+            "errorType": (error.errorType.namespace ++ ":" ++ error.errorType.identifier) default "HTTP:INTERNAL_SERVER_ERROR",
+			 "errorCode": 501,
+            "errorMessage": "Not Implemented",
+            "apiName": app.name,
+            "description": error.description,
+            "moreInfo": error.detailedDescription,
+            "transactionId": vars.transactionVar
+        }
+    ]
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[501]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+             <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform
+                    xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "status": 404,
+    "errors": [
+        {
+            "errorType": (error.errorType.namespace ++ ":" ++ error.errorType.identifier) default "HTTP:INTERNAL_SERVER_ERROR",
+			 "errorCode": 404,
+            "errorMessage": "Resource Not Found",
+            "apiName": app.name,
+            "description": error.description,
+            "moreInfo": error.detailedDescription,
+            "transactionId": vars.transactionVar
+        }
+    ]
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[404]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="ba79bf3f-769c-4fbb-aca7-f3cce19338c7" type="ANY">
+			<ee:transform doc:name="Transform Message" doc:id="41b74b65-c36b-4a1e-9290-220a90811946" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "status": error.errorCode default 500,
+    "errors": [
+        {
+            "errorType": (error.errorType.namespace ++ ":" ++ error.errorType.identifier) default "HTTP:INTERNAL_SERVER_ERROR",
+			 "errorCode": error.errorCode default 500,
+            "errorMessage": "Resource Not Found",
+            "apiName": app.name,
+            "description": error.description,
+            "moreInfo": error.detailedDescription,
+            "transactionId": vars.transactionVar
+        }
+    ]
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[error.errorCode default 500]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+	</error-handler>
+</mule>

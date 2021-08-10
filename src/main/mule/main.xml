@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+    xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+    xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:java="http://www.mulesoft.org/schema/mule/java"
+    xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd  http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/java http://www.mulesoft.org/schema/mule/java/current/mule-java.xsd http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+   
+    <flow name="pandemic-solutions-api-main">
+        <http:listener config-ref="pandemic-solutions-api-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <ee:transform doc:name="Set Transaction Metadata" doc:id="bd97f09b-1121-4b8b-8702-3bdb18a3594b" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="transactionVar" ><![CDATA[%dw 2.0
+output application/json
+---
+attributes.headers.'X-Root-Correlation-Id' default correlationId]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<apikit:router config-ref="pandemic-solutions-api-config"/>
+        
+        <error-handler ref="error-handling-flow" />
+    </flow>
+    <flow name="pandemic-solutions-api-console">
+        <http:listener config-ref="pandemic-solutions-api-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="pandemic-solutions-api-config"/>
+             <error-handler ref="error-handling-flow" />
+    </flow>
+    <flow name="get:\covid-19\vaccine\centers:pandemic-solutions-api-config">
+        <logger level="INFO" doc:name="Start Log" doc:id="5e854356-c6b8-411d-ad7c-4a60124f8fc2"
+            message="====== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Covid 19 Vaccine Centers Flow Started====="/>
+       
+        <flow-ref doc:name="Invoke Implementation Flow" doc:id="9add1014-feb1-4474-ba61-b29071f2838f" name="vaccine-center-impl-flow"/>
+		<logger level="INFO" doc:name="Exit Log" doc:id="0224d44b-a314-4cc5-b50f-6eca23aef3c9"
+            message="====== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Covid 19 Vaccine Centers Flow Successfully Completed====="/>
+    </flow>
+    <flow name="get:\covid-19\vaccine\certificate\download:pandemic-solutions-api-config">
+        <logger level="INFO" message="====== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Covid 19 Vaccine Certificate Download Flow Started=====" doc:name="Start Log"/>
+       
+        <flow-ref doc:name="Invoke Implementation Flow" doc:id="7b06f4dc-8726-4a09-8272-dc734e3d3006" name="certificate-impl-flow"/>
+		<logger level="INFO" doc:name="Exit Log" doc:id="a2dadb30-acd4-45e3-8d5f-3cae121856e5"
+            message="====== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Covid 19 Vaccine Certificate Download Flow Successfully Completed====="/>
+    </flow>
+    <flow name="get:\covid-19\vaccine\certificate\generateOTP:pandemic-solutions-api-config">
+        <logger level="INFO" doc:name="Start Log" doc:id="aa5b5486-69c0-454c-8998-10208fbffd12"
+            message="====== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Generate OTP  Flow Started====="/>
+       
+        <flow-ref doc:name="Invoke Implementation Flow" doc:id="ec9a0a2e-552d-495d-8056-d2f866e3e433" name="generate-otp-impl-flow"/>
+		<logger level="INFO" doc:name="Exit Log" doc:id="f1827132-4449-488c-acac-9b58bcfa2323"
+            message="====== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Generate OTP  Flow Sucessfully Completed====="/>
+    </flow>
+    <flow name="get:\covid-19\vaccine\certificate\validateOTP:pandemic-solutions-api-config">
+        <logger level="INFO" doc:name="Start Log" doc:id="2e450796-a07d-4da3-8bf0-2a5bc4bdd67d"
+            message="====== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Validate OTP  Flow Started====="/>
+        
+        <flow-ref doc:name="Invoke Implementation Flow" doc:id="e0817174-9eff-4588-9f93-3ad585472c04" name="validate-otp-impl-flow"/>
+		<logger level="INFO" doc:name="Exit Log" doc:id="054222da-4dd2-4554-be92-2b41bfef83bf"
+            message="====== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Validate  OTP  Flow Sucessfully Completed====="/>
+    </flow>
+    <flow name="get:\covid-19\world:pandemic-solutions-api-config">
+        <logger level="INFO" doc:name="Start Log" doc:id="cf0ca70c-16e7-4a13-bd1e-b50dca3231c1"
+            message="====== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Covid World Data Flow Started====="/>
+       
+        <flow-ref doc:name="Invoke Implementation Flow" doc:id="8f1d2031-b155-4967-8dd2-8192073ab299" name="covid-world-data-impl-flow"/>
+		<logger level="INFO" doc:name="Exit Log" doc:id="b05c6a0c-8e60-457c-b271-6126591d274a"
+            message="====== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Covid World Data Flow Successfully Completed====="/>
+    </flow>
+    <flow name="get:\covid-19\countries\(country):pandemic-solutions-api-config">
+        <logger level="INFO" doc:name="Start Log" doc:id="2d515505-618d-4aa8-9593-640375f41e99"
+            message="====== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Covid Country Data Flow Started====="/>
+        
+        <flow-ref doc:name="Invoke Implementation Flow" doc:id="5d6b5dd0-592f-4dd0-9c14-ebf78bdc8bf5" name="covid-country-impl-flow"/>
+		<logger level="INFO" doc:name="Exit Log" doc:id="16f742cd-91eb-4299-9c26-83c9b8813707"
+            message="====== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Covid Country Data Flow Successfully Completed====="/>
+    </flow>
+    <flow name="get:\clear:pandemic-solutions-api-config">
+        
+ 
+		<logger level="INFO" doc:name="Start Log" doc:id="42549c3f-bae1-4a82-9eb4-ae25a7630a28" message="====== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Clear Object Store Cache Flow Started====="/>
+		 <os:clear doc:name="Clear OS Keys" doc:id="3a0312b9-deb2-4810-af71-aaaf50b2393e" objectStore="Object_store"/>
+        <ee:transform doc:name="Set Response" doc:id="dbb2dbca-93fd-425c-958f-3d9434ad4cda" >
+            <ee:message >
+                <ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	'message': "All Keys are cleared"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<logger level="INFO" doc:name="Exit Log" doc:id="df13cf7b-a97d-4dbf-b72d-33d8ad913e37" message="====== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Clear Object Store Cache Flow Completed====="/>
+	</flow>
+</mule>

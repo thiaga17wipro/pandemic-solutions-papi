@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+	<flow name="vaccine-center-impl-flow" doc:id="8dce5a34-5842-42b6-a99e-d3b0974bc5b4" >
+		 <logger level="INFO" doc:name="Start Log" doc:id="857c1d21-0b76-457b-a92d-96f9f9ecf010"
+            message="====== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Vaccine Centers Implemntation Flow Started | Attributes : #[attributes.queryParams] ====="/>
+        <http:request method="GET" doc:name="Invoke Cowin API" doc:id="eda259b2-ccc0-4f53-882f-92b8768b23b2"
+            config-ref="COWIN_API_configuration" path="/appointment/sessions/public/findByPin">
+            <http:query-params><![CDATA[#[output application/java
+---
+{
+	"date" : attributes.queryParams.date,
+	"pincode" : attributes.queryParams.pincode
+}]]]></http:query-params>
+        </http:request>
+        <logger level="INFO" doc:name="Logger" doc:id="690caf6c-09f4-466a-a8e9-326ebee4b256" message="PAYLOAD : #[payload]"/>
+		<ee:transform doc:name="Response Transformation" doc:id="71ffc624-2384-4ab2-b412-5b2b48de3769">
+            <ee:message>
+                <ee:set-payload resource="dwls/map-vaccine-centers.dwl"/>
+            </ee:message>
+        </ee:transform>
+        <logger level="INFO" doc:name="Exit Log" doc:id="a31a730d-61dc-42fe-826d-367414aca920"
+            message="====== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Vaccine Centers Implemntation Successfully Completed ====="/>
+	</flow>
+	<flow name="certificate-impl-flow" doc:id="94f466d0-11ec-48de-8f72-668552d14ea3" >
+		<logger level="INFO" doc:name="Start Log" doc:id="75d67501-1c46-4ba2-a293-bd502d06960f" message="====== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Vaccine Centers Implemntation Flow Started | Attributes : #[attributes.queryParams] =========== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Certificates Implemntation Flow Started  ====="/>
+		 <os:retrieve doc:name="Retrieve Access Token" doc:id="f562baa7-e875-43d3-ab6d-e0a3397fc121" key="access_token"
+            objectStore="Object_store" target="token">
+            <os:default-value><![CDATA[#["No access token"]]]></os:default-value>
+        </os:retrieve>
+        <choice doc:name="Choice" doc:id="b51871f5-a01c-48f0-a80f-bf9d1af27504">
+            <when expression="#[!isEmpty(vars.token) and vars.token != &quot;No access token&quot;]">
+                <http:request method="GET" doc:name="COWIN API" doc:id="0d16ba0d-3e36-443d-82aa-21deb4108b15"
+                    path="/registration/certificate/public/download" config-ref="COWIN_API_configuration">
+                    <http:headers><![CDATA[#[output application/java ---
+{
+	'Authorization' : 'Bearer ' ++ vars.token
+}]]]></http:headers>
+                    <http:query-params><![CDATA[#[output applicatoion/java ---
+{
+	'beneficiary_reference_id':  attributes.queryParams.beneficiary_reference_id
+}]]]></http:query-params>
+                </http:request>
+                <os:remove doc:name="Remove Access Token" doc:id="c497a7b3-f598-4333-b1bb-76c2eb9d2c10" key="access_token"
+                    objectStore="Object_store"/>
+            </when>
+            <otherwise>
+                <logger level="INFO" doc:name="Log Invalid Request" doc:id="564a3122-9eeb-415b-bb47-17abbf2bf712"
+                    message="#[&quot;Invalid access token&quot;]"/>
+				<ee:transform doc:name="Invalid Access Token Response" doc:id="34a4a55f-f769-4021-a42d-fdfc56326d53" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	'message': "Invalid Token."
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+            
+</otherwise>
+        </choice>
+		<logger level="INFO" doc:name="Exit Log" doc:id="c2becdad-1983-40d3-8f66-57f45abd8df7" message="====== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Certificate Implemntation Successfully Completed ====="/>
+	</flow>
+	<flow name="generate-otp-impl-flow" doc:id="e04ea5bb-6918-4976-a1b7-bd0d65597bff" >
+		<logger level="INFO" doc:name="Start Log" doc:id="60407004-025b-4405-974f-152aa6f263c5" message="====== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Vaccine Centers Implemntation Flow Started | Attributes : #[attributes.queryParams] =========== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Generate OTP Implemntation Flow Started  ====="/>
+		 <ee:transform
+            xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd"
+            doc:name="Request Transformation">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"mobile": attributes.queryParams.'mobile'
+}]]></ee:set-payload>
+            </ee:message>
+            <ee:variables/>
+        </ee:transform>
+        <http:request method="POST" doc:name="COWIN API" doc:id="e49e5636-2012-4016-a4c3-3a5aa88cfc43"
+            config-ref="COWIN_API_configuration" path="/auth/public/generateOTP"/>
+        <os:store doc:name="Store TransactionId" doc:id="c0778109-eca8-45b8-ac14-ca20912e9713" key="txnId" objectStore="Object_store">
+            <os:value><![CDATA[#[payload.txnId]]]></os:value>
+        </os:store>
+        <logger level="INFO" doc:name="Exit Log" doc:id="055e16e1-eeb9-4a35-953a-e137b14cc6f6"
+            message="====== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Vaccine Centers Implemntation Flow Started | Attributes : #[attributes.queryParams] =========== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Generate OTP Implemntation Flow Successfully Completed  ====="/>
+	</flow>
+	<flow name="validate-otp-impl-flow" doc:id="a886df20-c0b6-4314-8747-0046bff58a13" >
+		<logger level="INFO" doc:name="Start Log" doc:id="29151abe-4cb2-4cd0-b2cb-32baafcb8904" message="====== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Vaccine Centers Implemntation Flow Started | Attributes : #[attributes.queryParams] =========== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Validate OTP Implemntation Flow Started  ====="/>
+		<ee:transform doc:name="Generate SHA256" doc:id="a9b7d308-fd1d-416a-bc53-4421abc923b4">
+            <ee:message/>
+            <ee:variables>
+                <ee:set-variable variableName="otp"><![CDATA[%dw 2.0 
+output application/java 
+import java!com::pandemic::OTP 
+        --- 
+        OTP::generate(attributes.queryParams.'otp')]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <os:retrieve doc:name="Retrieve TransactionId" doc:id="d742af83-16f9-4107-9e6b-3d3d07a853a6" key="txnId"
+            objectStore="Object_store" target="tId">
+            <os:default-value><![CDATA[#["No trasactionId present"]]]></os:default-value>
+        </os:retrieve>
+        <choice doc:name="Choice" doc:id="bb1319f5-2971-4b15-b969-2c89b0ae6094">
+            <when expression="#[!isEmpty(vars.tId) and vars.tId != &quot;No trasactionId present&quot;]">
+                <ee:transform doc:name="Map Validate OTP Request" doc:id="2a91a174-a50b-44a1-a1c4-0e4e74d0330a"
+                    xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+ output application/json 
+ --- 
+ {
+ 	 "otp" : vars.otp, 
+ 	"txnId" : vars.tId 
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables/>
+                </ee:transform>
+                <http:request method="POST" doc:name="COWIN Public API" doc:id="581dff19-0fd7-4611-97b2-8e57a1c3f2bb"
+                    config-ref="COWIN_API_configuration" path="/auth/public/confirmOTP"/>
+                <logger level="INFO" doc:name="Log Response" doc:id="4f8057dd-fcd3-4d84-bdaa-2fa2d6ba9226"
+                    message="&quot;Response Payload:&quot; #[payload]"/>
+                <os:remove doc:name="Remove TransactionId" doc:id="3d914c8a-a91a-4d3f-a646-b445bab4402d" key="txnId"
+                    objectStore="Object_store"/>
+                <os:store doc:name="Store Access Token" doc:id="d542cc1a-6d1a-4246-b978-382a4d6da920" key="access_token"
+                    objectStore="Object_store">
+                    <os:value><![CDATA[#[payload.token]]]></os:value>
+                </os:store>
+            </when>
+            <otherwise>
+                <logger level="INFO" doc:name="Log Invalid Transaction" doc:id="2a2de99a-34f4-4868-b9c5-29b894b03de6"
+                    message="#[&quot;Invalid transaction&quot;]"/>
+				<ee:transform doc:name="Response Transfomation" doc:id="19b4928f-5605-46b8-915f-344d97ac2f5f" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	'message': "Invalid Transaction ID"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+            
+</otherwise>
+        </choice>
+		<logger level="INFO" doc:name="Exit Log" doc:id="bcfe6d64-24bf-4cc2-b59e-87699ae299ee" message="====== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Vaccine Centers Implemntation Flow Started | Attributes : #[attributes.queryParams] =========== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Generate OTP Implemntation Flow Successfully Completed  ====="/>
+	</flow>
+	<flow name="covid-world-data-impl-flow" doc:id="2aa747b1-5cef-4b3f-bb12-598dd2b5508a" >
+		<logger level="INFO" doc:name="Start Log" doc:id="1dcf37ce-74ae-42b0-86fa-85729f929311" message="====== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Vaccine Centers Implemntation Flow Started | Attributes : #[attributes.queryParams] =========== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Covid World Data Implemntation Flow Started  ====="/>
+		 <http:request method="GET" doc:name="WHO Disease API " doc:id="0a6fc34b-6368-4f29-891b-3b236945aed7"
+            config-ref="Covid-19_API_configuration" path="/all"/>
+        <ee:transform
+            xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd"
+            doc:name="Response Transformation">
+            <ee:message>
+                <ee:set-payload resource="dwls/map-world-covid-cases.dwl"/>
+            </ee:message>
+        </ee:transform>
+        <logger level="INFO" doc:name="Exit Log" doc:id="d56d01f4-c1d7-42aa-b4e5-95e438dc427d"
+            message="====== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Vaccine Centers Implemntation Flow Started | Attributes : #[attributes.queryParams] =========== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Covid World Data Implemntation Flow Successfully Completed  ====="/>
+	</flow>
+	<flow name="covid-country-impl-flow" doc:id="c88f2666-e1c4-4e49-a576-e64aa87eed12" >
+		<logger level="INFO" doc:name="Start Log" doc:id="73ad86bb-7ea2-41b4-a52f-4656f7429259" message="====== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Vaccine Centers Implemntation Flow Started | Attributes : #[attributes.queryParams] =========== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Covid Country Data Implemntation Flow Started  ====="/>
+		<ee:transform doc:name="Set Country and State Params">
+            <ee:variables>
+                <ee:set-variable variableName="country"><![CDATA[%dw 2.0
+output application/java
+---
+attributes.uriParams.'country']]></ee:set-variable>
+                <ee:set-variable variableName="state"><![CDATA[%dw 2.0
+output application/java
+---
+attributes.queryParams.'state']]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <http:request method="GET" doc:name="WHO Disease API " doc:id="0d392531-0ae9-4ac6-ac4f-93bf1535e5ec"
+            config-ref="Covid-19_API_configuration" path="gov/{country}">
+            <http:uri-params><![CDATA[#[output application/java
+---
+{
+	"country" : vars.country
+}]]]></http:uri-params>
+        </http:request>
+        <logger level="INFO" doc:name="Logger" doc:id="6f3a8d4e-397a-45de-88c7-51530339171c" message="pYLOD : #[payload]"/>
+		<ee:transform
+            xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd"
+            doc:name="Response Transformation">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+if ( isEmpty(vars.state) ) {
+	"cases": payload.total.cases,
+	"active": payload.total.active,
+	"recovered": payload.total.recovered,
+	"deaths" : payload.total.deaths
+}
+else 
+( payload.states filter($.state == vars.state) map (obj, indexofObj) ->
+{
+	"cases": obj.cases,
+	"active": obj.active,
+	"recovered": obj.recovered,
+	"deaths": obj.deaths,
+}	)]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <logger level="INFO" doc:name="Exit Log" doc:id="77dd40f8-1c4c-4b79-b5b7-c39c51a18e8f"
+            message="====== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Vaccine Centers Implemntation Flow Started | Attributes : #[attributes.queryParams] =========== API NAME: #[app.name] | TIME STAMP: #[now()] | TRANSACTION ID: #[vars.transactionVar] | Flow name: #[flow.name] | Covid Country Data Implemntation Flow Successfully Completed  ====="/>
+	</flow>
+</mule>
